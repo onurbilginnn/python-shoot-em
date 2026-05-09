@@ -5,11 +5,13 @@ from shot import Shot
 from constants import (
     PLAYER_RADIUS,
     PLAYER_SHOOT_COOLDOWN_SECONDS,
+    PLAYER_INVULNERABILITY_SECONDS,
     LINE_WIDTH,
     PLAYER_SHOOT_SPEED,
     SHOT_RADIUS,
     PLAYER_TURN_SPEED,
     PLAYER_SPEED,
+    STARTING_LIFE_COUNT
 )
 
 
@@ -18,6 +20,8 @@ class Player(CircleShape):
         super().__init__(x, y, PLAYER_RADIUS)
         self.rotation = 0
         self.shoot_cooldown = 0
+        self.total_lifes = STARTING_LIFE_COUNT
+        self.invulnerability_timer = 0.0
 
     def triangle(self):
         forward = pygame.Vector2(0, 1).rotate(self.rotation)
@@ -28,6 +32,10 @@ class Player(CircleShape):
         return [a, b, c]
 
     def draw(self, screen):
+        if self.is_invulnerable():
+            # Blink at ~10Hz while invulnerable.
+            if int(self.invulnerability_timer * 10) % 2 == 0:
+                return
         pygame.draw.polygon(screen, "white", self.triangle(), LINE_WIDTH)
 
     def rotate(self, dt):
@@ -36,6 +44,7 @@ class Player(CircleShape):
     def update(self, dt):
         keys = pygame.key.get_pressed()
         self.shoot_cooldown -= dt
+        self.invulnerability_timer = max(0.0, self.invulnerability_timer - dt)
         if keys[pygame.K_a] or keys[pygame.K_LEFT]:
             self.rotate(dt * -1)
         if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
@@ -59,3 +68,15 @@ class Player(CircleShape):
         shot = Shot(self.position.x, self.position.y, SHOT_RADIUS)
         shot.velocity = pygame.Vector2(0, 1).rotate(self.rotation) * PLAYER_SHOOT_SPEED
         self.shoot_cooldown = PLAYER_SHOOT_COOLDOWN_SECONDS
+
+    def add_life(self):
+        self.total_lifes += 1
+    
+    def delete_life(self):
+        self.total_lifes -= 1
+
+    def is_invulnerable(self):
+        return self.invulnerability_timer > 0
+
+    def start_invulnerability(self):
+        self.invulnerability_timer = PLAYER_INVULNERABILITY_SECONDS
