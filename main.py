@@ -52,7 +52,6 @@ def main():
                     earned_score = ast.calculate_asteroid_score()
                     ast.split()
                     shot.kill()
-                    print("asteroid radius:", ast.radius)
                     score += earned_score
                     if score / (EXTRA_LIFE_SCORE * extra_life) > 1:
                         print(score / (EXTRA_LIFE_SCORE * extra_life))
